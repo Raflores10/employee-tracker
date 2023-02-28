@@ -1,17 +1,9 @@
-const sql = require("mysql2");
+const db = require("./config/connection");
 const inquirer = require("inquirer");
 const PORT = process.env.PORT || 3001;
 
 // Creating connection.
-// const db = sql.createConnection(
-//     {
-//         host:"localhost",
-//         user:"root",
-//         password:"",
-//         database:"team_db"
-//     },
-//     console.log(`Connected to the team_db database.`)
-// ); 
+
 
 // Creating function for promt to get user input.
 function start() {
@@ -32,7 +24,7 @@ function start() {
         ]
     })
     .then (function (answer) {
-        switch(answer.action) {
+        switch(answer.choices) {
             case "View All Employees":
                 viewEmployees();
                 break;
@@ -45,7 +37,7 @@ function start() {
             case "View All Roles":
                 viewRoles();
                 break;
-            case "Add Roles":
+            case "Add Role":
                 addRoles();
                  break;
             case "View All Departments":
@@ -54,32 +46,25 @@ function start() {
             case "Add Department":
                  addDepartment();
                  break;
-            default:
-                console.log("Goodbye!")
+            case "Quit":
+                console.log('Goodbye!');
+                return process.exit(1);
         }
     })
 };
 
 // Creating individual functions for each option.
 function viewEmployees(){
+    console.log("view all")
     db.query(`SELECT * FROM employee`, (err,data) => {
         if (err) {
             throw err
         } else {
             console.table(data);
+            start()
         }
     });
 
-    inquirer.prompt([
-        {
-            type: "list",
-            message: "Go Back",
-            name: "return",
-            choices: ["Go Back"]
-        }
-    ]) .then ((ans) =>{
-        start();
-    })
 };
 
 function addEmployee(){
@@ -111,23 +96,14 @@ function addEmployee(){
             if (err) {
                 throw err;
             }
+            console.log("Updated!")
+            start()
         })
-        console.log("Updated!")
-        inquirer.prompt([
-            {
-                type: "list",
-                message: "Go Back",
-                name: "return",
-                choices: ["Go Back"]
-            }
-        ]) .then ((ans) =>{
-            start();
         })
-    })
 };
 function updateRole() {
     console.log("updateRole")
-    inquirer.prompt ([
+    inquirer.prompt([
         {
             type: "list",
             message: "",
@@ -138,5 +114,94 @@ function updateRole() {
             start();
         })
 };
+
+function viewRoles() {
+    db.query(`SELECT * FROM roles`, (err,data) => {
+        if (err) {
+            throw err
+        } else {
+            console.table(data);
+            start()
+        }
+    });
+};
+
+function addRoles() {
+    console.log("test")
+    inquirer.prompt([
+        {
+            type: "input",
+            message: "Enter Role",
+            name: "title",   
+        },
+        {
+            type: "input",
+            message: "Enter salary for this role",
+            name: "salary",   
+        },
+        {
+            type: "input",
+            message: "Enter roles department",
+            name: "department",   
+        },
+    ]) .then ((ans) => {
+        db.query(`INSERT INTO roles SET ?`,
+        {
+            title: ans.title,
+            salary: ans.salary,
+            department_id: ans.department,
+    
+        },
+        function (err) {
+            if (err) {
+                throw err;
+            }
+            console.log("Updated!");
+            start()
+        })
+        })
+};
+
+
+
+function viewDepartments(){
+    console.log("view all")
+    db.query(`SELECT * FROM department`, (err,data) => {
+        if (err) {
+            throw err
+        } else {
+            console.table(data);
+            start()
+        }
+    });
+
+};
+
+function addDepartment(){
+    inquirer.prompt([
+        {
+            type: "input",
+            message: "Enter department name",
+            name: "departmentName",   
+        },
+    ]) .then ((ans) => {
+        db.query(`INSERT INTO department SET ?`,
+        {
+            department_name: ans.departmentName,
+        },
+        function (err) {
+            if (err) {
+                throw err;
+            }
+            console.log("Updated!")
+            start()
+        })
+        })
+};
+
+
+
+
+
 
 start();
